@@ -30,6 +30,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 
@@ -178,9 +180,32 @@ public class WalletAppKit extends AbstractIdleService {
         }
         FileInputStream walletStream = null;
         try {
-            File chainFile = new File(directory, filePrefix + ".spvchain");
+            //fortesting
+            //File chainFile = new File(directory, filePrefix + ".spvchain");
+            URL url = Thread.currentThread().getContextClassLoader().getResource(filePrefix + ".spvchain");
+            File chainFile = null;
+            if(url == null){
+               url =  Thread.currentThread().getContextClassLoader().getResource("");
+               String dirPath = URLDecoder.decode(url.getPath(), "UTF-8");
+               chainFile = new File(dirPath + filePrefix + ".spvchain");
+            }else{
+               String decoded = URLDecoder.decode(url.getPath(), "UTF-8");
+               chainFile = new File(decoded);
+            }
+
             boolean chainFileExists = chainFile.exists();
-            vWalletFile = new File(directory, filePrefix + ".wallet");
+
+            //fortesting... saving not in tomcat bin
+            //vWalletFile = new File(directory, filePrefix + ".wallet");
+            URL urlWallet = Thread.currentThread().getContextClassLoader().getResource(filePrefix + ".wallet");
+            if(urlWallet == null){
+                url =  Thread.currentThread().getContextClassLoader().getResource("");
+                String dirPath = URLDecoder.decode(url.getPath(), "UTF-8");
+                vWalletFile = new File(dirPath + filePrefix + ".wallet");
+            }else{
+                vWalletFile = new File(URLDecoder.decode(urlWallet.getPath(), "UTF-8"));
+            }
+
             boolean shouldReplayWallet = vWalletFile.exists() && !chainFileExists;
 
             vStore = new SPVBlockStore(params, chainFile);
